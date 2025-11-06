@@ -1,0 +1,21 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+backend.log
+frontend.log
+
+# Process files
+*.pid
+
+# OS
+.DS_Store
+Thumbs.db

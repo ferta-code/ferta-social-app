@@ -1,0 +1,93 @@
+.tweet-card {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: border-color 0.2s;
+}
+
+.tweet-card:hover {
+  border-color: #646cff;
+}
+
+.tweet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-badge,
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: white;
+}
+
+.tweet-content {
+  flex: 1;
+}
+
+.tweet-text {
+  color: #fff;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.tweet-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #242424;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.tweet-textarea:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
+.tweet-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #aaa;
+}
+
+.edited-badge {
+  padding: 0.125rem 0.5rem;
+  background-color: #333;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.tweet-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
