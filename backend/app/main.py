@@ -15,16 +15,19 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan events for startup and shutdown"""
-    # Startup: Start the scheduler
-    scheduler_service = get_scheduler_service()
-    scheduler_service.start()
-    print("✓ Scheduler started - daily content generation and tweet posting active")
+    # Startup: Only start scheduler if not in serverless environment
+    if settings.environment != "production":
+        scheduler_service = get_scheduler_service()
+        scheduler_service.start()
+        print("✓ Scheduler started - daily content generation and tweet posting active")
 
     yield
 
-    # Shutdown: Stop the scheduler
-    scheduler_service.stop()
-    print("✓ Scheduler stopped")
+    # Shutdown: Stop the scheduler if it was started
+    if settings.environment != "production":
+        scheduler_service = get_scheduler_service()
+        scheduler_service.stop()
+        print("✓ Scheduler stopped")
 
 
 # Initialize FastAPI app
@@ -38,7 +41,12 @@ app = FastAPI(
 # CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite default port
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://frontend-phi-pink-j740zrpmgm.vercel.app",
+        "https://*.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

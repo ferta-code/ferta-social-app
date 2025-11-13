@@ -5,17 +5,21 @@ from app.database import SessionLocal
 from app.services.content_generator import ContentGenerator
 from app.config import get_settings
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import logging
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+# Configure timezone to Central Time (USA)
+CENTRAL_TZ = ZoneInfo("America/Chicago")
 
 
 class SchedulerService:
     """Service for scheduling automated tasks"""
 
     def __init__(self):
-        self.scheduler = BackgroundScheduler()
+        self.scheduler = BackgroundScheduler(timezone=CENTRAL_TZ)
         self.running = False
 
     def start(self):
@@ -27,19 +31,19 @@ class SchedulerService:
         # Parse content generation time (format: "HH:MM")
         hour, minute = map(int, settings.content_generation_time.split(':'))
 
-        # Schedule daily content generation
+        # Schedule daily content generation (in Central Time)
         self.scheduler.add_job(
             self.generate_daily_content,
-            trigger=CronTrigger(hour=hour, minute=minute),
+            trigger=CronTrigger(hour=hour, minute=minute, timezone=CENTRAL_TZ),
             id='daily_content_generation',
             name='Generate daily tweet ideas',
             replace_existing=True
         )
 
-        # Schedule tweet posting (check every hour for scheduled tweets)
+        # Schedule tweet posting (check every hour for scheduled tweets, in Central Time)
         self.scheduler.add_job(
             self.post_scheduled_tweets,
-            trigger=CronTrigger(minute=0),  # Every hour at minute 0
+            trigger=CronTrigger(minute=0, timezone=CENTRAL_TZ),  # Every hour at minute 0
             id='post_scheduled_tweets',
             name='Post scheduled tweets',
             replace_existing=True
@@ -88,8 +92,8 @@ class SchedulerService:
         try:
             from app.models import Tweet
 
-            # Get current hour window
-            now = datetime.now()
+            # Get current hour window in Central Time
+            now = datetime.now(CENTRAL_TZ)
             hour_start = now.replace(minute=0, second=0, microsecond=0)
             hour_end = hour_start + timedelta(hours=1)
 

@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import { Tweet, TweetUpdate } from '../types'
-import { format } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
 import './TweetCard.css'
+
+// Central Time timezone
+const CENTRAL_TZ = 'America/Chicago'
+
+// Helper to format dates in Central Time
+const formatCT = (dateString: string, formatStr: string) => {
+  return formatInTimeZone(new Date(dateString), CENTRAL_TZ, formatStr)
+}
 
 interface TweetCardProps {
   tweet: Tweet
@@ -12,6 +20,9 @@ interface TweetCardProps {
 function TweetCard({ tweet, onUpdate, onDelete }: TweetCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(tweet.content)
+  const [showScheduler, setShowScheduler] = useState(false)
+  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledTime, setScheduledTime] = useState('')
 
   const handleSave = () => {
     if (editedContent !== tweet.content) {
@@ -25,13 +36,38 @@ function TweetCard({ tweet, onUpdate, onDelete }: TweetCardProps) {
   }
 
   const handleSchedule = () => {
-    // In a real app, this would open a datetime picker
+    if (!scheduledDate || !scheduledTime) {
+      alert('Please select both date and time')
+      return
+    }
+
+    const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`)
+
+    if (scheduledDateTime < new Date()) {
+      alert('Scheduled time must be in the future')
+      return
+    }
+
+    onUpdate(tweet.id, {
+      status: 'scheduled',
+      scheduled_time: scheduledDateTime.toISOString()
+    })
+    setShowScheduler(false)
+    setScheduledDate('')
+    setScheduledTime('')
+  }
+
+  const handleQuickSchedule = (hoursFromNow: number) => {
     const scheduledTime = new Date()
-    scheduledTime.setHours(scheduledTime.getHours() + 1)
+    scheduledTime.setHours(scheduledTime.getHours() + hoursFromNow)
     onUpdate(tweet.id, {
       status: 'scheduled',
       scheduled_time: scheduledTime.toISOString()
     })
+  }
+
+  const handleUnschedule = () => {
+    onUpdate(tweet.id, { status: 'approved', scheduled_time: undefined })
   }
 
   const getStatusColor = (status: string) => {
@@ -73,10 +109,50 @@ function TweetCard({ tweet, onUpdate, onDelete }: TweetCardProps) {
 
       <div className="tweet-meta">
         <span className="tweet-date">
-          {format(new Date(tweet.created_at), 'MMM d, yyyy h:mm a')}
+          Created: {formatCT(tweet.created_at, 'MMM d, yyyy h:mm a')} CT
         </span>
         {tweet.edited && <span className="edited-badge">Edited</span>}
       </div>
+
+      {tweet.scheduled_time && (
+        <div className="scheduled-time">
+          <strong>⏰ Scheduled for:</strong> {formatCT(tweet.scheduled_time, 'MMM d, yyyy h:mm a')} CT
+        </div>
+      )}
+
+      {showScheduler && (
+        <div className="scheduler-modal">
+          <h4>Schedule Tweet</h4>
+          <div className="quick-schedule">
+            <p>Quick schedule:</p>
+            <button className="btn btn-sm" onClick={() => handleQuickSchedule(1)}>+1 hour</button>
+            <button className="btn btn-sm" onClick={() => handleQuickSchedule(4)}>+4 hours</button>
+            <button className="btn btn-sm" onClick={() => handleQuickSchedule(24)}>+1 day</button>
+          </div>
+          <div className="custom-schedule">
+            <p>Or choose custom time:</p>
+            <input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+            />
+            <input
+              type="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+            />
+          </div>
+          <div className="scheduler-actions">
+            <button className="btn btn-sm btn-primary" onClick={handleSchedule}>
+              Confirm
+            </button>
+            <button className="btn btn-sm btn-secondary" onClick={() => setShowScheduler(false)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="tweet-actions">
         {isEditing ? (
@@ -102,8 +178,13 @@ function TweetCard({ tweet, onUpdate, onDelete }: TweetCardProps) {
               </button>
             )}
             {tweet.status === 'approved' && (
-              <button className="btn btn-sm btn-primary" onClick={handleSchedule}>
+              <button className="btn btn-sm btn-primary" onClick={() => setShowScheduler(true)}>
                 Schedule
+              </button>
+            )}
+            {tweet.status === 'scheduled' && (
+              <button className="btn btn-sm btn-warning" onClick={handleUnschedule}>
+                Unschedule
               </button>
             )}
             <button className="btn btn-sm btn-danger" onClick={() => onDelete(tweet.id)}>

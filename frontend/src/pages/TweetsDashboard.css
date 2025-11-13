@@ -4,6 +4,24 @@
   align-items: center;
 }
 
+.view-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.view-toggle .btn {
+  border-radius: 0;
+  border: none;
+  border-right: 1px solid #333;
+}
+
+.view-toggle .btn:last-child {
+  border-right: none;
+}
+
 .filter-select {
   padding: 0.75rem 1rem;
   border: 1px solid #333;
@@ -17,6 +35,60 @@
 .filter-select:focus {
   outline: none;
   border-color: #646cff;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.kanban-column {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 500px;
+  border: 1px solid #333;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #444;
+}
+
+.column-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.tweet-count {
+  background: #646cff;
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.column-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.empty-column {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #666;
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 .tweets-grid {
@@ -33,7 +105,17 @@
   font-size: 1.2rem;
 }
 
+@media (max-width: 1200px) {
+  .kanban-board {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+
   .tweets-grid {
     grid-template-columns: 1fr;
   }
@@ -44,7 +126,8 @@
   }
 
   .filter-select,
-  .btn {
+  .btn,
+  .view-toggle {
     width: 100%;
   }
 }

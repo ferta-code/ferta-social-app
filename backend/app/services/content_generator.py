@@ -1,11 +1,15 @@
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-from app.models import HistoricalTweet, Tweet, InstagramPost
+from app.models import HistoricalTweet, Tweet, InstagramPost, TweetEdit
 from app.services.twitter_client import get_twitter_client
 from app.services.tweet_analyzer import TweetAnalyzer
 from app.services.claude_client import get_claude_client
 from app.services.chatgpt_client import get_chatgpt_client
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+# Configure timezone to Central Time (USA)
+CENTRAL_TZ = ZoneInfo("America/Chicago")
 
 
 class ContentGenerator:
@@ -94,13 +98,25 @@ class ContentGenerator:
             topics = ['fertility', 'natural', 'holistic', 'health', 'ivf', 'treatment', 'nutrition', 'hormones', 'wellness']
             common_phrases = ['natural fertility', 'holistic approach', 'root cause', 'fertility restoration', 'conventional treatment']
 
+        # Get edit history to learn from user preferences
+        edit_examples = []
+        tweet_edits = self.db.query(TweetEdit).order_by(TweetEdit.edit_timestamp.desc()).limit(10).all()
+        if tweet_edits:
+            for edit in tweet_edits:
+                edit_examples.append({
+                    'original': edit.original_text,
+                    'improved': edit.edited_text
+                })
+            print(f"Using {len(edit_examples)} edit examples to improve tweet generation")
+
         # For now, use only ChatGPT since Claude model access may be limited
         # Generate all tweets with ChatGPT
         chatgpt_tweets = self.chatgpt_client.generate_tweets(
             count=count,
             brand_voice_examples=brand_voice_examples,
             topics=topics,
-            common_phrases=common_phrases
+            common_phrases=common_phrases,
+            edit_examples=edit_examples
         )
 
         # Store generated tweets in database
@@ -187,10 +203,10 @@ class ContentGenerator:
             # Post to Twitter
             twitter_id = self.twitter_client.post_tweet(tweet.content)
 
-            # Update tweet record
+            # Update tweet record (use Central Time)
             tweet.twitter_id = twitter_id
             tweet.status = 'posted'
-            tweet.posted_time = datetime.now()
+            tweet.posted_time = datetime.now(CENTRAL_TZ)
 
             self.db.commit()
             return True

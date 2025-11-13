@@ -2,10 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import Tweet, HistoricalTweet
+from app.models import Tweet, HistoricalTweet, TweetEdit
 from app.schemas import TweetResponse, TweetUpdate, ContentGenerationRequest, ContentGenerationResponse
 from app.services.content_generator import get_content_generator
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+# Configure timezone to Central Time (USA)
+CENTRAL_TZ = ZoneInfo("America/Chicago")
 
 router = APIRouter()
 
@@ -14,7 +18,7 @@ router = APIRouter()
 def get_tweets(
     status: str = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 500,
     db: Session = Depends(get_db)
 ):
     """Get all tweets, optionally filtered by status"""
@@ -43,9 +47,30 @@ def update_tweet(tweet_id: int, tweet_update: TweetUpdate, db: Session = Depends
 
     update_data = tweet_update.model_dump(exclude_unset=True)
 
-    # If content is being updated, mark as edited
-    if "content" in update_data:
+    # If content is being updated, track the edit
+    if "content" in update_data and update_data["content"] != tweet.content:
+        # Store original content if not already stored
+        if not tweet.original_content:
+            tweet.original_content = tweet.content
+
+        # Track the edit for learning
+        edit_record = TweetEdit(
+            tweet_id=tweet.id,
+            original_text=tweet.content,
+            edited_text=update_data["content"],
+            ai_source=tweet.ai_source
+        )
+        db.add(edit_record)
+
         tweet.edited = True
+
+    # If scheduled_time is being set, ensure it's timezone-aware (Central Time)
+    if "scheduled_time" in update_data and update_data["scheduled_time"] is not None:
+        scheduled_time = update_data["scheduled_time"]
+        # If the datetime is naive (no timezone), assume it's Central Time
+        if scheduled_time.tzinfo is None:
+            scheduled_time = scheduled_time.replace(tzinfo=CENTRAL_TZ)
+        update_data["scheduled_time"] = scheduled_time
 
     for key, value in update_data.items():
         setattr(tweet, key, value)
@@ -76,6 +101,15 @@ async def generate_tweets(
     try:
         generator = get_content_generator(db)
 
+        # Delete all old pending tweets to show only new ones
+        old_pending = db.query(Tweet).filter(Tweet.status == "pending").all()
+        deleted_count = len(old_pending)
+        for tweet in old_pending:
+            db.delete(tweet)
+        db.commit()
+        if deleted_count > 0:
+            print(f"Deleted {deleted_count} old pending tweets")
+
         # Only fetch historical tweets if we don't have enough
         historical_count = db.query(HistoricalTweet).count()
         if historical_count < 50:
@@ -94,7 +128,7 @@ async def generate_tweets(
         return ContentGenerationResponse(
             message=f"Successfully generated {results['total']} tweets ({results['claude']} from Claude, {results['chatgpt']} from ChatGPT)",
             tweets_generated=results['total'],
-            timestamp=datetime.now()
+            timestamp=datetime.now(CENTRAL_TZ)
         )
 
     except Exception as e:

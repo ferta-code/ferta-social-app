@@ -18,7 +18,8 @@ class ChatGPTClient:
         count: int,
         brand_voice_examples: List[str],
         topics: List[str],
-        common_phrases: List[str]
+        common_phrases: List[str],
+        edit_examples: List[dict] = None
     ) -> List[str]:
         """
         Generate tweet ideas based on brand voice and topics
@@ -34,7 +35,7 @@ class ChatGPTClient:
         """
         # Create prompt with context
         prompt = self._build_tweet_generation_prompt(
-            count, brand_voice_examples, topics, common_phrases
+            count, brand_voice_examples, topics, common_phrases, edit_examples
         )
 
         try:
@@ -63,10 +64,27 @@ class ChatGPTClient:
         count: int,
         brand_voice_examples: List[str],
         topics: List[str],
-        common_phrases: List[str]
+        common_phrases: List[str],
+        edit_examples: List[dict] = None
     ) -> str:
         """Build the prompt for tweet generation"""
-        return f"""Generate {count} deeply insightful tweet ideas for @joinferta. These tweets should sound like Preethi Kasireddy and Alexander Cortes sharing hard-earned wisdom and nuanced perspectives on fertility with their community.
+
+        # Build the edit examples section if available
+        edit_section = ""
+        if edit_examples and len(edit_examples) > 0:
+            edit_section = "\n\nLEARN FROM THESE EDITS - Your previous tweets were edited to be better. Study these to understand what makes a great tweet:\n\n"
+            for i, example in enumerate(edit_examples, 1):
+                edit_section += f"Example {i}:\n"
+                edit_section += f"Original (not good enough): \"{example['original']}\"\n"
+                edit_section += f"Improved version: \"{example['improved']}\"\n\n"
+            edit_section += "IMPORTANT: Analyze what changed in these edits. Notice the patterns:\n"
+            edit_section += "- Did the improved version add more directness?\n"
+            edit_section += "- Did it add actionable advice?\n"
+            edit_section += "- Did it make bolder claims?\n"
+            edit_section += "- Did it simplify the language?\n"
+            edit_section += "Apply these lessons to the new tweets you generate.\n"
+
+        return f"""Generate {count} substantive, high-impact tweet ideas for @joinferta. These tweets should be bold, direct, and actionable - like Preethi Kasireddy cutting through the noise with hard truths about fertility.
 
 BRAND VOICE EXAMPLES:
 {chr(10).join(f'- "{example}"' for example in brand_voice_examples)}
@@ -75,43 +93,64 @@ KEY TOPICS TO EXPLORE WITH DEPTH:
 {', '.join(topics)}
 
 COMMON PHRASES THAT RESONATE:
-{', '.join(common_phrases)}
+{', '.join(common_phrases)}{edit_section}
 
-CONTENT DEPTH REQUIREMENTS:
-- Challenge conventional thinking with specific, evidence-based counterpoints
-- Share nuanced perspectives that acknowledge complexity, not just platitudes
-- Include specific mechanisms, observations, or lesser-known insights
-- Reference real experiences, case observations, or data points when relevant
-- Reveal the "why" behind the advice, not just the "what"
-- Address common misconceptions or contradictions in fertility advice
-- Explore the psychological, physiological, or systemic aspects of fertility
-- Make connections between seemingly unrelated factors (stress, nutrition, hormones, lifestyle)
+CRITICAL: WRITE WITH SUBSTANCE AND IMPACT
 
-TOPICS TO EXPLORE MORE DEEPLY:
-- Why natural fertility restoration often works when conventional approaches fail
-- The specific mechanisms of how lifestyle factors affect hormone balance
-- Misconceptions about age, ovarian reserve, and fertility potential
-- The role of insulin resistance, inflammation, and metabolic health in conception
-- How stress and nervous system dysregulation impact reproductive hormones
-- The fertility industry's incentives vs what actually helps people conceive
-- Specific nutrition interventions and their hormonal impacts
-- The difference between treating symptoms vs addressing root causes
-- Personal journey insights from building Ferta and helping real people
+BAD EXAMPLE (too academic, no punch):
+"Why stress matters: Chronic stress dysregulates the nervous system, throwing hormones like cortisol out of balance. This cascade directly impacts fertility."
 
-VOICE & TONE REQUIREMENTS:
-- Sound like a knowledgeable founder who's been in the trenches, not a generic wellness account
-- Share specific insights and observations, not generic advice
-- Be direct and sometimes contrarian when evidence supports it
-- Use "I've seen", "what I've learned", "here's what most people miss" framing
-- Sound like you're revealing something valuable that most people don't know
-- Be authentic and vulnerable when sharing personal experiences
-- Avoid oversimplification - embrace nuance and complexity
-- Don't be preachy or judgmental, but be confident in evidence-based perspectives
+GOOD EXAMPLE (direct, actionable, impactful):
+"Stress is the #1 killer of fertility. Cortisol will steal resources from all your other reproductive hormones, making you less fertile. If there is one thing you can do today to improve your fertility, it is to get better at managing stress."
+
+WHAT MAKES THE GOOD EXAMPLE WORK:
+- Opens with a bold, direct statement (#1 killer)
+- Explains the mechanism simply (cortisol steals resources)
+- Ends with clear, actionable advice (do this today)
+- Uses strong, confident language (will steal, less fertile)
+- No hedging or academic distance
+
+CONTENT REQUIREMENTS:
+- Lead with the bold claim or most important insight first
+- Explain the mechanism in simple, direct language
+- Include specific, actionable advice when relevant
+- Use strong, confident language ("will", "is", "causes" not "may" or "can")
+- Make it feel urgent and important
+- Focus on what people can DO, not just what they should know
+- Explain cause-and-effect clearly (X steals from Y, causing Z)
+- Challenge common beliefs with evidence-based truths
+
+TOPICS TO EXPLORE WITH BOLD CLAIMS:
+- Why stress management is more important than most medical interventions
+- How insulin resistance directly blocks conception pathways
+- The specific ways seed oils and processed foods destroy hormone balance
+- Why your doctor isn't telling you about root causes (system incentives)
+- How nervous system dysregulation makes pregnancy impossible
+- Why age isn't the limiting factor most people think it is
+- The direct hormone-stealing effects of chronic stress
+- How inflammation blocks receptor sites for fertility hormones
+- Why treating PCOS with birth control makes it worse long-term
+- The metabolic switches that turn fertility on and off
+
+VOICE & TONE:
+- Write like you're sharing an urgent truth, not teaching a lesson
+- Be direct and confident, not hedging or academic
+- Use "will" and "is" instead of "may" and "might"
+- Make bold claims backed by mechanisms
+- Sound like you're revealing something important people need to know
+- End with clear action steps when relevant ("do this today", "start here")
+- Avoid softening language ("kind of", "sort of", "a bit")
+- No platitudes or generic wellness advice
+
+STRUCTURE FORMULA:
+1. Bold claim/statement of the problem
+2. Explain the mechanism (how it works)
+3. Actionable takeaway or next step (when relevant)
 
 STRICT FORMATTING RULES:
 - NO hashtags at all
 - NO emojis or icons
-- 200-280 characters per tweet (allow space for depth)
+- 200-280 characters per tweet
 - Pure text only
 
 Return ONLY a numbered list of tweets, one per line. No explanations.

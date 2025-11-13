@@ -22,6 +22,7 @@ class Tweet(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text, nullable=False)
+    original_content = Column(Text, nullable=True)  # Store original AI-generated content
     ai_source = Column(String, nullable=False)  # 'claude' or 'chatgpt'
     status = Column(String, default="pending")  # pending/approved/scheduled/posted/failed
     scheduled_time = Column(DateTime, nullable=True)
@@ -29,6 +30,18 @@ class Tweet(Base):
     created_at = Column(DateTime, server_default=func.now())
     edited = Column(Boolean, default=False)
     twitter_id = Column(String, nullable=True)  # Twitter API ID after posting
+
+
+class TweetEdit(Base):
+    """Track edits to tweets for learning and improvement"""
+    __tablename__ = "tweet_edits"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tweet_id = Column(Integer, ForeignKey("tweets.id"), nullable=False)
+    original_text = Column(Text, nullable=False)
+    edited_text = Column(Text, nullable=False)
+    edit_timestamp = Column(DateTime, server_default=func.now())
+    ai_source = Column(String, nullable=False)  # Which AI generated the original
 
 
 class InstagramPost(Base):

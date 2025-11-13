@@ -1,6 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+from zoneinfo import ZoneInfo
+
+# Central Time timezone
+CENTRAL_TZ = ZoneInfo("America/Chicago")
 
 
 # Historical Tweet Schemas
@@ -48,6 +52,20 @@ class TweetResponse(TweetBase):
     created_at: datetime
     edited: bool
     twitter_id: Optional[str] = None
+
+    @field_serializer('created_at', 'scheduled_time', 'posted_time')
+    def serialize_dt(self, dt: Optional[datetime], _info) -> Optional[str]:
+        if dt is None:
+            return None
+        # If datetime is naive, assume it's UTC (SQLite stores as UTC by default)
+        if dt.tzinfo is None:
+            from zoneinfo import ZoneInfo
+            utc = ZoneInfo("UTC")
+            dt = dt.replace(tzinfo=utc)
+        # Convert to Central Time
+        dt_central = dt.astimezone(CENTRAL_TZ)
+        # Return ISO format with timezone
+        return dt_central.isoformat()
 
     class Config:
         from_attributes = True

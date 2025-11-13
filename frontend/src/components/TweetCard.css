@@ -91,3 +91,102 @@
 .btn-danger:hover {
   background-color: #dc2626;
 }
+
+.scheduled-time {
+  padding: 0.75rem;
+  background-color: #1e293b;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: #e0e0e0;
+}
+
+.scheduled-time strong {
+  color: #3b82f6;
+  margin-right: 0.5rem;
+}
+
+.scheduler-modal {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background-color: #242424;
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.scheduler-modal h4 {
+  margin: 0 0 1rem 0;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.quick-schedule {
+  margin-bottom: 1rem;
+}
+
+.quick-schedule p,
+.custom-schedule p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  color: #aaa;
+}
+
+.quick-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.quick-schedule p {
+  width: 100%;
+}
+
+.custom-schedule {
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.custom-schedule input[type="date"],
+.custom-schedule input[type="time"] {
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.custom-schedule input[type="date"]:focus,
+.custom-schedule input[type="time"]:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
+.custom-schedule input[type="date"]::-webkit-calendar-picker-indicator,
+.custom-schedule input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.scheduler-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+}
+
+.btn-warning {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover {
+  background-color: #d97706;
+}

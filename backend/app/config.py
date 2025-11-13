@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     instagram_access_token: str = ""
     instagram_business_account_id: str = ""
 
+    # Supabase (optional - only needed if using Supabase features)
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_service_key: str = ""
+
     # Application Settings
     content_generation_time: str = "09:00"
     tweets_per_day: int = 25
