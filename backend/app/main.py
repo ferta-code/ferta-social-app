@@ -2,12 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import get_settings
-from app.database import engine, Base
 from app.api import tweets, instagram, scheduler, config as config_router
 from app.services.scheduler_service import get_scheduler_service
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
 
 settings = get_settings()
 
@@ -15,19 +11,16 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan events for startup and shutdown"""
-    # Startup: Only start scheduler if not in serverless environment
-    if settings.environment != "production":
-        scheduler_service = get_scheduler_service()
-        scheduler_service.start()
-        print("✓ Scheduler started - daily content generation and tweet posting active")
+    # Startup: Start the scheduler for automated tasks
+    scheduler_service = get_scheduler_service()
+    scheduler_service.start()
+    print("✓ Scheduler started - daily content generation and tweet posting active")
 
     yield
 
-    # Shutdown: Stop the scheduler if it was started
-    if settings.environment != "production":
-        scheduler_service = get_scheduler_service()
-        scheduler_service.stop()
-        print("✓ Scheduler stopped")
+    # Shutdown: Stop the scheduler
+    scheduler_service.stop()
+    print("✓ Scheduler stopped")
 
 
 # Initialize FastAPI app
