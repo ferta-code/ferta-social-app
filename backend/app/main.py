@@ -34,12 +34,7 @@ app = FastAPI(
 # CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://frontend-phi-pink-j740zrpmgm.vercel.app",
-        "https://*.vercel.app"
-    ],
+    allow_origins=["*"],  # Allow all origins for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
